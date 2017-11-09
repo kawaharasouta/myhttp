@@ -37,4 +37,12 @@ int main(int argc, char *argv[]){
 		close(socket);
 		exit(1);
 	}
+
+	char send_buf[1024];
+	strcpy(send_buf, "GET / HTTP/1.0\r\n\r\n");
+	if(send(sock, send_buf, strlen(send_buf), 0) < 0){
+		fprintf(stderr, "send error");
+		close(sock);
+		exit(1);
+	}
 }
