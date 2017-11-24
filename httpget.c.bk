@@ -68,45 +68,37 @@ int main(int argc, char *argv[]){
 	int head, end;
 	//!size of receved message
 	int size;
-	head = 0;
-	end = 0;
+	head = end = 0;
 	//!time
 	struct timeval timeout;
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
-	//while(1){//レスポンスを受け取るん
-		//read = mask;//なぜここで代入作業がはいるんだ
+	while(1){//レスポンスを受け取るん
+		read = mask;//なぜここで代入作業がはいるんだ
 		printf("selectします\n");
-		//FD_ZERO(&mask);
-		//FD_SET(sock, &mask);//maskに通信してるソケットを設定
-		switch(select(sock + 1, &mask, NULL, NULL, &timeout)){
+		switch(select(sock + 1, &read, NULL, NULL, &timeout)){
 			case -1:
 				fprintf(stderr, "select\n");
 				end = 1;
-				break;
+				break;;
 			case 0:
 				printf("なんも来てないです\n");
 				break;
 			default:
-				if(FD_ISSET(sock, &mask)){
-					recv(sock, tmpbuf, sizeof(tmpbuf), 0);//メッセージの長さが帰ってくる
-					size = strlen(tmpbuf);
-					if(size <= 0){//0以下の時は正常実行されてない時らしいけど。
+				if(FD_ISSET(sock, &read)){
+					size = recv(sock, tmpbuf, sizeof(tmpbuf), 0);//メッセージの長さが帰ってくる
+					if(size < 0){//0以下の時は正常実行されてない時らしいけど。
 						end = 1;
 					}
 					else{
 						if(head == 0){//ヘッダーだったら
 							ptr = memstr(tmpbuf, size, "\r\n\r\n", 4);//ptrにヘッダー以降が入る
-							printf("ptr:%s\n",ptr);
 							if(ptr != NULL){
 								//ヘッダ部を標準エラー出力に送るみたい
-								//fwrite(tmpbuf, ptr - tmpbuf + 4, 1, stderr);
-								fwrite(tmpbuf, strlen(tmpbuf) - strlen(ptr), 1, fp);
-								fwrite("\n\n", 4, 1, fp);
-								printf("tmpbuf:%d ptr:%d\n", strlen(tmpbuf), strlen(ptr));
+								fwrite(tmpbuf, ptr - tmpbuf + 4, 1, stderr);
 								head = 1;
 								//data
-								fwrite(ptr, size, 1, fp);
+								fwrite(tmpbuf, size, 1, fp);
 							}
 							else{
 								fwrite(tmpbuf, size, 1, stderr);
@@ -114,18 +106,16 @@ int main(int argc, char *argv[]){
 							printf("get hedder\n");
 						}
 						else{//ヘッダおわってるからデータ
-							printf("head:%d\n",head);
-							printf("size:%d\n", size);
-							printf("fwrite:%d\n",(int)fwrite(ptr, strlen(ptr), 1, fp));
+							fwrite(tmpbuf, size, 1, fp);
 							//printf("get data\n");
-							printf("data\n%s", tmpbuf);
+							printf("data:%s\n", tmpbuf);
 						}
 					}
 				}
-				break;
+			break;
 		}
-	//	if(end == 1) break;
-	//}
+		if(end == 1) break;
+	}
 	fclose(fp);
 	close(sock);
 	return 0;
@@ -135,7 +125,7 @@ int main(int argc, char *argv[]){
  * @fn memstr
  * @brief binary version of strstr()
  * @param buf:in str, target:return, 
- * @return char*
+ * @return int char
  * @sa main
  */
 char *memstr(char *buf, int blen, char *target, int tlen){
