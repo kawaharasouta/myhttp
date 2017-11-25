@@ -89,36 +89,42 @@ int main(int argc, char *argv[]){
 				break;
 			default:
 				if(FD_ISSET(sock, &mask)){
+					printf("メッセージ受信\n");
 					recv(sock, tmpbuf, sizeof(tmpbuf), 0);//メッセージの長さが帰ってくる
 					size = strlen(tmpbuf);
 					if(size <= 0){//0以下の時は正常実行されてない時らしいけど。
+						printf("終了\n");
 						end = 1;
 					}
 					else{
 						if(head == 0){//ヘッダーだったら
 							ptr = memstr(tmpbuf, size, "\r\n\r\n", 4);//ptrにヘッダー以降が入る
-							printf("ptr:%s\n",ptr);
+							//printf("ptr:%s\n",ptr);
 							if(ptr != NULL){
+								printf("ヘッダ部かつ中身あり\n");
 								//ヘッダ部を標準エラー出力に送るみたい
 								//fwrite(tmpbuf, ptr - tmpbuf + 4, 1, stderr);
-								fwrite(tmpbuf, strlen(tmpbuf) - strlen(ptr), 1, fp);
-								fwrite("\n\n", 4, 1, fp);
-								printf("tmpbuf:%d ptr:%d\n", strlen(tmpbuf), strlen(ptr));
+								//fwrite(tmpbuf, strlen(tmpbuf) - strlen(ptr), 1, fp);
+								fwrite(ptr, strlen(ptr), 1, fp);
+								//fwrite("\n\n", 4, 1, fp);
+								//printf("tmpbuf:%d ptr:%d\n", strlen(tmpbuf), strlen(ptr));
 								head = 1;
 								//data
-								fwrite(ptr, size, 1, fp);
+								//fwrite(ptr, size, 1, fp);
 							}
 							else{
+								printf("ヘッダ部かつ中身なし\n");
 								fwrite(tmpbuf, size, 1, stderr);
 							}
-							printf("get hedder\n");
+							//printf("get hedder\n");
 						}
 						else{//ヘッダおわってるからデータ
-							printf("head:%d\n",head);
-							printf("size:%d\n", size);
-							printf("fwrite:%d\n",(int)fwrite(ptr, strlen(ptr), 1, fp));
+							//printf("head:%d\n",head);
+							//printf("size:%d\n", size);
+							printf("データのみ\n");
+							printf("fwrite:%d\n",(int)fwrite(tmpbuf, strlen(tmpbuf), 1, fp));
 							//printf("get data\n");
-							printf("data\n%s", tmpbuf);
+							//printf("data\n%s", tmpbuf);
 						}
 					}
 				}
@@ -149,9 +155,12 @@ char *memstr(char *buf, int blen, char *target, int tlen){
 			for(j = 1;j < tlen;j++){
 				if(buf[i + j] != target[j]){
 					  ok = 0;
-					  return(buf + i); 
+					  break;
 				}   
-			}   
+			}
+			if(ok == 1){
+				return(buf + i);
+			}
 		}   
 	}   
 	return(NULL);
