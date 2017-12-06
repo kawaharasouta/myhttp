@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
 
 	//!保存するファイル名
 	FILE *fp;
-	if((fp = fopen("test.txt", "w")) == NULL){
+	if((fp = fopen("test.html", "w")) == NULL){
 		fprintf(stderr, "fopen error");
 		exit(1);
 	}
